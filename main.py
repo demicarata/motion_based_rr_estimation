@@ -16,7 +16,7 @@ from helper.visualisation import plot_performance_metrics, plot_ground_truth_rr
 
 def main():
     parser = argparse.ArgumentParser(description="Run video analysis using different algorithms.")
-    parser.add_argument("--algorithm", type=int, choices=[1, 2, 3], default=2,
+    parser.add_argument("--algorithm", type=int, choices=[1, 2, 3], default=3,
                         help="Select the algorithm: 1 for Pixel Intensity Changes,"
                              " 2 for Optical Flow, 3 for Eulerian Video Magnification.")
 
@@ -25,8 +25,8 @@ def main():
     choice = args.algorithm
     print(f"Using algorithm {choice}")
 
-    video_path = "AIR_converted/S01/videos/004_720p.mp4"
-    ground_truth_file = "AIR_converted/S01/hdf5/004.hdf5"
+    video_path = "AIR_converted/S05/videos/005_720p.mp4"
+    ground_truth_file = "AIR_converted/S05/hdf5/005.hdf5"
 
     with h5py.File(ground_truth_file, 'r') as f:
         ground_truth = f['respiration'][:]
@@ -40,9 +40,8 @@ def main():
     fps = video.get(cv2.CAP_PROP_FPS)
     frame_number = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     duration = frame_number / fps
-    window_size = int(fps * 10)
+    window_size = int(fps * 15)
     frame_delay = 1 / fps
-    motion_threshold = 8.0
 
     print(f"Frame number: {frame_number}")
     print(f"Duration: {duration}")
@@ -66,7 +65,8 @@ def main():
 
     motion_signal = []
     respiratory_rate_history = []
-    motion_threshold = 6.0
+    mpc = []
+    csd = []
 
     # Performance tracking
     frame_processing_times = []
@@ -77,16 +77,16 @@ def main():
 
     if choice == 1:
         algorithm_name = "Pixel Intensity Changes"
-        pixel_intensity_changes(video, ground_truth, fps, window_size, motion_threshold, respiratory_rate_history,
-                                motion_signal, frame_processing_times, cpu_loads, process, x, y, h, w)
+        pixel_intensity_changes(video, ground_truth, fps, window_size, respiratory_rate_history,
+                                motion_signal, frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w)
     elif choice == 2:
         algorithm_name = "Optical Flow"
         optical_flow(video, ground_truth, fps, window_size, respiratory_rate_history, motion_signal,
-                     frame_processing_times, cpu_loads, process, x, y, h, w, prev_gray)
+                     frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w, prev_gray)
     else:
         algorithm_name = "Eulerian Video Magnification"
         eulerian_video_magnification(video, ground_truth, fps, window_size, respiratory_rate_history,
-                                     frame_processing_times, cpu_loads, process, x, y, h, w)
+                                     frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w)
 
     video.release()
     cv2.destroyAllWindows()
@@ -100,7 +100,6 @@ def main():
     min_length = len(respiratory_rate_history)
     ground_truth_bpm = ground_truth_bpm[:min_length]
 
-    print(len(ground_truth_bpm), len(respiratory_rate_history))
     corr_coef, p_value = pearsonr(ground_truth_bpm, respiratory_rate_history)
     print("Pearson correlation coefficient:", corr_coef)
     print("p-value:", p_value)
@@ -119,13 +118,15 @@ def main():
         if not file_exists:
             # Write header if file is created for the first time
             writer.writerow(
-                ["Algorithm", "Video Path", "FPS", "Avg Frame Processing Time", "Avg CPU Load", "Pearson Coefficient", "RMSE"])
+                ["Algorithm", "Video Path", "FPS", "Avg Frame Processing Time", "Avg CPU Load", "MPC", "CSD", "Pearson Coefficient", "RMSE"])
         writer.writerow([
             algorithm_name,
             video_path,
             fps,
             np.mean(frame_processing_times),
             np.mean(cpu_loads),
+            np.mean(mpc),
+            np.mean(csd),
             corr_coef,
             rmse
         ])

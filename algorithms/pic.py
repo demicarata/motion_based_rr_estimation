@@ -2,16 +2,16 @@ import cv2
 import numpy as np
 import time
 import psutil
-from scipy.stats import pearsonr
 
 from helper.filters import bandpass_filter, exponential_moving_average, median_filter, wavelet_denoising, \
     gaussian_filter, savgol, magnitude_threshold_filter
 from helper.calculate_RR import fourier
 from helper.visualisation import plot_window
+from helper.window_correlation import hilbert_correlation, cross_spectral_density_correlation
 
 
-def pixel_intensity_changes(video, ground_truth, fps, window_size, motion_threshold, respiratory_rate_history,
-                            motion_signal, frame_processing_times, cpu_loads, process, x, y, h, w):
+def pixel_intensity_changes(video, ground_truth, fps, window_size, respiratory_rate_history,
+                            motion_signal, frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w):
     ground_truth = 10 * ground_truth
     respiratory_rate = None
     sliding_window_data = []
@@ -19,9 +19,8 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, motion_thresh
     last_valid_intensity = None
     frame_count = 0
     motion_differences = []
-    k = 3.0
+    k = 5.0
     adaptive_threshold = 100.0
-
 
     while True:
         start_time = time.time()
@@ -32,9 +31,6 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, motion_thresh
             break
 
         roi_frame = frame[y:y + h, x:x + w]
-
-        # Display the ROI separately
-        cv2.imshow("ROI View", roi_frame)
 
         frame_count += 1
 
@@ -56,11 +52,10 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, motion_thresh
             # print("Frame diff: ", mean_diff)
             motion_differences.append(mean_diff)
 
-            if frame_count % (fps * 10) == 0:
+            if frame_count % window_size == 0:
                 mean_motion = np.mean(motion_differences)
                 std_motion = np.std(motion_differences)
                 adaptive_threshold = mean_motion + k * std_motion
-                print(mean_motion, std_motion, adaptive_threshold)
 
             # If the mean difference exceeds the threshold, discard the frame
             if mean_diff > adaptive_threshold:
@@ -80,8 +75,9 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, motion_thresh
         if len(sliding_window_data) > window_size:
             sliding_window_data = sliding_window_data[-window_size:]
 
+
         # Calculate respiratory rate every second after the first 10 seconds
-        if len(sliding_window_data) >= window_size and (frame_count % int(fps) == 0):
+        if frame_count >= window_size and (frame_count % int(fps) == 0):
 
             # Convert intensity to a NumPy array
             intensity_window = np.array(sliding_window_data)
@@ -91,7 +87,7 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, motion_thresh
             top_5 = np.argsort(std_devs)[-int(0.05 * len(std_devs)):]
             selected_signal = np.mean(intensity_window[:, top_5], axis=1)
 
-            filtered_signal = bandpass_filter(selected_signal, fps, 0.3, 0.8)
+            filtered_signal = bandpass_filter(selected_signal, fps, 0.3, 0.8, 8)
 
             # filtered_signal = wavelet_denoising(filtered_signal)
             filtered_signal = (filtered_signal - np.mean(filtered_signal)) / np.std(filtered_signal)
@@ -101,22 +97,18 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, motion_thresh
             respiratory_rate = fourier(filtered_signal, fps)
             respiratory_rate_history.append(respiratory_rate)
 
-            if frame_count % (fps * 10) == 0:
+            if frame_count % window_size == 0:
+                print(f"Triggered at frame {frame_count}, time {frame_count / fps:.2f} seconds")
                 # Extract the corresponding ground truth data
                 ground_truth_window = ground_truth[(frame_count - window_size):frame_count]
-                # Compute the Mean Squared Error (MSE)
-                mse = np.mean((filtered_signal - ground_truth_window) ** 2)
 
-                # Compute the Normalized Root Mean Squared Error (NRMSE)
-                range_gt = np.max(ground_truth_window) - np.min(ground_truth_window)
-                nrmse = np.sqrt(mse) / range_gt
+                # Ensure the two arrays are of the same size - For first window plot
+                min_length = min(len(ground_truth_window), len(sliding_window_data))
+                ground_truth_window = ground_truth_window[:min_length]
+                sliding_window_data = sliding_window_data[:min_length]
 
-                print("Normalized Root Mean Squared Error (NRMSE):", nrmse)
-
-                corr_coef, p_value = pearsonr(ground_truth_window, filtered_signal)
-                print("Pearson correlation coefficient in window:", corr_coef)
-
-                # print(filtered_signal)
+                mpc.append(hilbert_correlation(ground_truth_window, filtered_signal))
+                csd.append(cross_spectral_density_correlation(ground_truth_window, filtered_signal))
 
                 plot_window(filtered_signal, ground_truth_window, frame_count/fps)
 

@@ -2,9 +2,12 @@ import cv2
 import numpy as np
 import time
 import psutil
+
 from helper.filters import bandpass_filter, moving_average_filter, exponential_moving_average
 from helper.calculate_RR import fourier
 from helper.visualisation import plot_window
+from helper.window_correlation import hilbert_correlation, cross_spectral_density_correlation
+
 
 def build_gaussian_pyramid(frame, levels=3):
     pyramid = [frame]
@@ -53,8 +56,8 @@ def extract_motion_signal(amplified_frames):
 
 
 def eulerian_video_magnification(video, ground_truth, fps, window_size,
-                                 respiratory_rate_history, frame_processing_times, cpu_loads, process, x, y, h, w):
-    ground_truth = ground_truth * 8000000
+                                 respiratory_rate_history, frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w):
+    ground_truth = ground_truth * 8000000  # For visualisation purposes, as the motion magnitude is much higher
     respiratory_rate = None
     sliding_window_data = []
     frame_count = 0
@@ -76,21 +79,29 @@ def eulerian_video_magnification(video, ground_truth, fps, window_size,
         if len(sliding_window_data) > window_size:
             sliding_window_data.pop(0)
 
-        if len(sliding_window_data) == window_size and (frame_count % int(fps) == 0):
+        if frame_count >= window_size and (frame_count % int(fps) == 0):
             amplified_frames = amplify_motion(sliding_window_data, fps)
             motion_signal = extract_motion_signal(amplified_frames)
-            smoothed_signal = bandpass_filter(motion_signal, fps, 0.3, 0.8)
-            smoothed_signal = exponential_moving_average(smoothed_signal)
+            filtered_signal = bandpass_filter(motion_signal, fps, 0.3, 0.8, 3)
+            filtered_signal = exponential_moving_average(filtered_signal)
 
-            respiratory_rate = fourier(smoothed_signal, fps)
+            respiratory_rate = fourier(filtered_signal, fps)
             respiratory_rate_history.append(respiratory_rate)
 
-            if frame_count % (fps * 10) == 0:
+            if frame_count % window_size == 0:
                 print("Frame count: ", frame_count)
                 # Extract the corresponding ground truth data
                 ground_truth_window = ground_truth[(frame_count - window_size):frame_count]
 
-                plot_window(smoothed_signal, ground_truth_window, frame_count / fps)
+                # Ensure the two arrays are of the same size - For first window plot
+                min_length = min(len(ground_truth_window), len(filtered_signal))
+                ground_truth_window = ground_truth_window[:min_length]
+                filtered_signal = filtered_signal[:min_length]
+
+                mpc.append(hilbert_correlation(ground_truth_window, filtered_signal))
+                csd.append(cross_spectral_density_correlation(ground_truth_window, filtered_signal))
+
+                plot_window(filtered_signal, ground_truth_window, frame_count / fps)
 
         # Display the respiratory rate on the frame
         if respiratory_rate is not None:
@@ -100,7 +111,6 @@ def eulerian_video_magnification(video, ground_truth, fps, window_size,
 
         cv2.imshow("Respiratory Rate Estimation", frame)
 
-        # Break loop on 'q' key press
         if cv2.waitKey(int(1000 / 30)) & 0xFF == ord('q'):
             break
 
