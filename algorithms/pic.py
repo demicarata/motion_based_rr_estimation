@@ -92,7 +92,7 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, respiratory_r
             # filtered_signal = wavelet_denoising(filtered_signal)
             filtered_signal = (filtered_signal - np.mean(filtered_signal)) / np.std(filtered_signal)
             filtered_signal = exponential_moving_average(filtered_signal)
-            # filtered_signal = magnitude_threshold_filter(filtered_signal)
+            filtered_signal = magnitude_threshold_filter(filtered_signal)
 
             respiratory_rate = fourier(filtered_signal, fps)
             respiratory_rate_history.append(respiratory_rate)

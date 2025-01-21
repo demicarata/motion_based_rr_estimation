@@ -34,7 +34,7 @@ def amplify_motion(video_frames, fps, alpha=100, low_freq=0.3, high_freq=0.8, le
     for level in range(levels):
         print("Level", level)
         level_frames = np.array([p[level] for p in pyramids])
-        filtered = bandpass_filter(level_frames, fps, low_freq, high_freq)
+        filtered = bandpass_filter(level_frames, fps, low_freq, high_freq, 3)
         amplified_frames = level_frames + alpha * filtered
         amplified_pyramids.append(amplified_frames)
 
@@ -82,7 +82,7 @@ def eulerian_video_magnification(video, ground_truth, fps, window_size,
         if frame_count >= window_size and (frame_count % int(fps) == 0):
             amplified_frames = amplify_motion(sliding_window_data, fps)
             motion_signal = extract_motion_signal(amplified_frames)
-            filtered_signal = bandpass_filter(motion_signal, fps, 0.3, 0.8, 3)
+            filtered_signal = bandpass_filter(motion_signal, fps, 0.3, 0.8, 8)
             filtered_signal = exponential_moving_average(filtered_signal)
 
             respiratory_rate = fourier(filtered_signal, fps)

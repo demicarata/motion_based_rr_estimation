@@ -79,4 +79,4 @@ def magnitude_threshold_filter(signal, threshold_factor=1.0):
         if np.abs(signal[peak]) < threshold:
             filtered_signal[peak] = 0  # Remove the peak by setting it to zero
 
-    return filtered_signal, avg_magnitude, threshold
+    return filtered_signal

@@ -16,7 +16,7 @@ from helper.visualisation import plot_performance_metrics, plot_ground_truth_rr
 
 def main():
     parser = argparse.ArgumentParser(description="Run video analysis using different algorithms.")
-    parser.add_argument("--algorithm", type=int, choices=[1, 2, 3], default=3,
+    parser.add_argument("--algorithm", type=int, choices=[1, 2, 3], default=2,
                         help="Select the algorithm: 1 for Pixel Intensity Changes,"
                              " 2 for Optical Flow, 3 for Eulerian Video Magnification.")
 
@@ -25,8 +25,8 @@ def main():
     choice = args.algorithm
     print(f"Using algorithm {choice}")
 
-    video_path = "AIR_converted/S05/videos/005_720p.mp4"
-    ground_truth_file = "AIR_converted/S05/hdf5/005.hdf5"
+    video_path = "AIR_converted/S03/videos/005_720p.mp4"
+    ground_truth_file = "AIR_converted/S03/hdf5/005.hdf5"
 
     with h5py.File(ground_truth_file, 'r') as f:
         ground_truth = f['respiration'][:]
@@ -97,8 +97,9 @@ def main():
     ground_truth_bpm = ground_truth_rr(ground_truth_file, int(duration), int(fps))
     plot_ground_truth_rr(ground_truth_bpm, respiratory_rate_history)
 
-    min_length = len(respiratory_rate_history)
+    min_length = min(len(respiratory_rate_history), len(ground_truth_bpm))
     ground_truth_bpm = ground_truth_bpm[:min_length]
+    respiratory_rate_history = respiratory_rate_history[:min_length]
 
     corr_coef, p_value = pearsonr(ground_truth_bpm, respiratory_rate_history)
     print("Pearson correlation coefficient:", corr_coef)
