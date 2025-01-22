@@ -8,7 +8,7 @@ Change this code
 '''
 
 
-def ground_truth_rr(file_path, total_duration, fps, window_size=15, step_size=1):
+def ground_truth_rr(file_path, total_duration, fps, window_size=10, step_size=1):
     # Derived values
     samples_per_window = window_size * fps
     step_samples = step_size * fps
@@ -32,6 +32,7 @@ def ground_truth_rr(file_path, total_duration, fps, window_size=15, step_size=1)
         end = start + samples_per_window
         window_signal = respiration_signal[start:end]
         rr = fourier(window_signal, fps)
+
         rr_values.append(rr)
 
     return rr_values

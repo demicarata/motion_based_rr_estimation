@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.signal import hilbert
 
+from helper.visualisation import plot_window
+
+
 # How do I make these better
 
 

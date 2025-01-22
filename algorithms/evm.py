@@ -57,7 +57,7 @@ def extract_motion_signal(amplified_frames):
 
 def eulerian_video_magnification(video, ground_truth, fps, window_size,
                                  respiratory_rate_history, frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w):
-    ground_truth = ground_truth * 8000000  # For visualisation purposes, as the motion magnitude is much higher
+    ground_truth = ground_truth * 80000000  # For visualisation purposes, as the motion magnitude is much higher
     respiratory_rate = None
     sliding_window_data = []
     frame_count = 0
@@ -74,7 +74,6 @@ def eulerian_video_magnification(video, ground_truth, fps, window_size,
         sliding_window_data.append(cropped_frame)
 
         frame_count += 1
-        print("Frame count: ", frame_count)
 
         if len(sliding_window_data) > window_size:
             sliding_window_data.pop(0)
@@ -82,7 +81,7 @@ def eulerian_video_magnification(video, ground_truth, fps, window_size,
         if frame_count >= window_size and (frame_count % int(fps) == 0):
             amplified_frames = amplify_motion(sliding_window_data, fps)
             motion_signal = extract_motion_signal(amplified_frames)
-            filtered_signal = bandpass_filter(motion_signal, fps, 0.3, 0.8, 8)
+            filtered_signal = bandpass_filter(motion_signal, fps, 0.3, 0.9, 8)
             filtered_signal = exponential_moving_average(filtered_signal)
 
             respiratory_rate = fourier(filtered_signal, fps)

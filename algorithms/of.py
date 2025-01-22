@@ -53,7 +53,7 @@ def optical_flow(video, ground_truth, fps, window_size, respiratory_rate_history
 
         # Update respiratory rate every 1 second
         if frame_count >= window_size and (frame_count % int(fps) == 0):
-            filtered_signal = bandpass_filter(sliding_window_data, fps, 0.3, 0.8, 8)
+            filtered_signal = bandpass_filter(sliding_window_data, fps, 0.3, 0.9, 8)
             filtered_signal = wavelet_denoising(filtered_signal)
             filtered_signal = moving_average_filter(filtered_signal)
 

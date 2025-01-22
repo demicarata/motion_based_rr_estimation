@@ -11,10 +11,11 @@ def plot_window(signal, ground_truth, time_stamp):
     # Plot the ground truth data
     plt.plot(ground_truth, label="Ground Truth Respiration", color="orange", linestyle="--")
 
-    plt.title(f"Filtered Motion Signal and Ground Truth at {time_stamp:.1f} seconds", fontsize=18)
-    plt.xlabel("Time (frame number)", fontsize=18)
-    plt.ylabel("Normalized Intensity / Respiration (M)", fontsize=18)
-    plt.rcParams['font.size'] = 18
+    plt.title(f"Filtered Motion Signal and Ground Truth at {time_stamp:.1f} seconds", fontsize=20)
+    plt.xlabel("Time (frame number)", fontsize=20)
+    plt.ylabel("Normalized Intensity / Respiration", fontsize=20)
+    plt.rcParams['font.size'] = 20
+    plt.subplots_adjust(bottom=0.2)
     plt.legend()
     plt.show()
 
@@ -52,4 +53,5 @@ def plot_ground_truth_rr(ground_truth, respiratory_rate_history):
     plt.ylabel("RR(BPM)")
     plt.legend()
     plt.rcParams['font.size'] = 18
+    plt.subplots_adjust(bottom=0.2)
     plt.show()

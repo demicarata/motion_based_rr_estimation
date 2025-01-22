@@ -42,7 +42,7 @@ The project follows a modular structure with a main file to run the program, thr
     ├── statistics.py            # Compiles the results of the algorithm runs
     ├── algorithm_results.csv    # Stores the statistics extracted after each run of the algorithm
     ├── requirements.txt         # List of dependencies
-    ├──README.md                 # This file
+    ├── README.md                 # This file
     │
     └── AIR_converted/           # Dataset used for testing
         ├── S01/                 # Data for the first subject

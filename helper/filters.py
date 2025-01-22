@@ -23,7 +23,7 @@ def median_filter(signal, window_size=5):
     return np.array([np.median(signal[max(0, i - window_size // 2): i + window_size // 2 + 1]) for i in range(len(signal))])
 
 
-def exponential_moving_average(signal, alpha=0.2):
+def exponential_moving_average(signal, alpha=0.4):
     ema_signal = np.zeros_like(signal)
     ema_signal[0] = signal[0]
     for i in range(1, len(signal)):

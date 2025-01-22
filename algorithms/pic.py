@@ -87,25 +87,25 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, respiratory_r
             top_5 = np.argsort(std_devs)[-int(0.05 * len(std_devs)):]
             selected_signal = np.mean(intensity_window[:, top_5], axis=1)
 
-            filtered_signal = bandpass_filter(selected_signal, fps, 0.3, 0.8, 8)
+            filtered_signal = bandpass_filter(selected_signal, fps, 0.3, 0.9, 8)
 
             # filtered_signal = wavelet_denoising(filtered_signal)
             filtered_signal = (filtered_signal - np.mean(filtered_signal)) / np.std(filtered_signal)
             filtered_signal = exponential_moving_average(filtered_signal)
-            filtered_signal = magnitude_threshold_filter(filtered_signal)
+            filtered_signal = savgol(filtered_signal)
+            # filtered_signal = magnitude_threshold_filter(filtered_signal)
 
             respiratory_rate = fourier(filtered_signal, fps)
             respiratory_rate_history.append(respiratory_rate)
 
             if frame_count % window_size == 0:
-                print(f"Triggered at frame {frame_count}, time {frame_count / fps:.2f} seconds")
                 # Extract the corresponding ground truth data
                 ground_truth_window = ground_truth[(frame_count - window_size):frame_count]
 
                 # Ensure the two arrays are of the same size - For first window plot
-                min_length = min(len(ground_truth_window), len(sliding_window_data))
+                min_length = min(len(ground_truth_window), len(filtered_signal))
                 ground_truth_window = ground_truth_window[:min_length]
-                sliding_window_data = sliding_window_data[:min_length]
+                filtered_signal = filtered_signal[:min_length]
 
                 mpc.append(hilbert_correlation(ground_truth_window, filtered_signal))
                 csd.append(cross_spectral_density_correlation(ground_truth_window, filtered_signal))

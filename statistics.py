@@ -44,7 +44,9 @@ fps_values = [10, 15, 30]
 max_delays = [1 / fps for fps in fps_values]
 bar_colours = ["purple", "orange", "green"]
 
-fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
+fig, axes = plt.subplots(1, 3, figsize=(15, 8), sharey=True)
+
+plt.rcParams.update({'font.size': 18})
 
 for i, (fps, max_delay) in enumerate(zip(fps_values, max_delays)):
     # Filter data for the current FPS
@@ -57,13 +59,13 @@ for i, (fps, max_delay) in enumerate(zip(fps_values, max_delays)):
 
     axes[i].bar(bar_positions, avg_times, color=bar_colours, label='Avg Frame Processing Time')
 
-    axes[i].axhline(y=max_delay, color='red', linestyle='--', label=f'Max Delay ({1/fps:.2f}s)')
+    axes[i].axhline(y=max_delay, color='black', linewidth=3, linestyle='--',label=f'Max Delay ({1/fps:.2f}s)')
 
     axes[i].set_title(f'{fps} FPS')
     axes[i].set_xticks(bar_positions)
-    axes[i].set_xticklabels(algorithms, rotation=45, ha='right')
-    axes[i].set_ylabel('Time (s)') if i == 0 else None
-    axes[i].legend()
+    axes[i].set_xticklabels(algorithms, rotation=45, ha='right', fontsize=20)
+    axes[i].tick_params(axis='y', labelsize=20)
+    axes[i].set_ylabel('Time (s)', fontsize=20) if i == 0 else None
 
 plt.tight_layout()
 plt.show()

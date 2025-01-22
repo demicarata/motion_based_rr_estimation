@@ -16,7 +16,7 @@ from helper.visualisation import plot_performance_metrics, plot_ground_truth_rr
 
 def main():
     parser = argparse.ArgumentParser(description="Run video analysis using different algorithms.")
-    parser.add_argument("--algorithm", type=int, choices=[1, 2, 3], default=2,
+    parser.add_argument("--algorithm", type=int, choices=[1, 2, 3], default=3,
                         help="Select the algorithm: 1 for Pixel Intensity Changes,"
                              " 2 for Optical Flow, 3 for Eulerian Video Magnification.")
 
@@ -25,8 +25,8 @@ def main():
     choice = args.algorithm
     print(f"Using algorithm {choice}")
 
-    video_path = "AIR_converted/S03/videos/005_720p.mp4"
-    ground_truth_file = "AIR_converted/S03/hdf5/005.hdf5"
+    video_path = "AIR_converted/S05/videos/005_720p.mp4"
+    ground_truth_file = "AIR_converted/S05/hdf5/005.hdf5"
 
     with h5py.File(ground_truth_file, 'r') as f:
         ground_truth = f['respiration'][:]
@@ -40,7 +40,7 @@ def main():
     fps = video.get(cv2.CAP_PROP_FPS)
     frame_number = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     duration = frame_number / fps
-    window_size = int(fps * 15)
+    window_size = int(fps * 10)
     frame_delay = 1 / fps
 
     print(f"Frame number: {frame_number}")
@@ -76,15 +76,15 @@ def main():
     prev_gray = cv2.cvtColor(first_frame[y:y + h, x:x + w], cv2.COLOR_BGR2GRAY)
 
     if choice == 1:
-        algorithm_name = "Pixel Intensity Changes"
+        algorithm_name = "PIC"
         pixel_intensity_changes(video, ground_truth, fps, window_size, respiratory_rate_history,
                                 motion_signal, frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w)
     elif choice == 2:
-        algorithm_name = "Optical Flow"
+        algorithm_name = "OF"
         optical_flow(video, ground_truth, fps, window_size, respiratory_rate_history, motion_signal,
                      frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w, prev_gray)
     else:
-        algorithm_name = "Eulerian Video Magnification"
+        algorithm_name = "EVM"
         eulerian_video_magnification(video, ground_truth, fps, window_size, respiratory_rate_history,
                                      frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w)
 
