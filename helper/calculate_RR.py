@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def fourier(signal, fps, lowcut=0.2, highcut=0.9):
+def fourier(signal, fps, lowcut=0.3, highcut=0.8):
     # Apply FFT
     n = len(signal)
     freqs = np.fft.rfftfreq(n, 1 / fps)

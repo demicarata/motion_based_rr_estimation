@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
+'''
+Script for outputting statistics about the results
+'''
+
 file_path = 'algorithm_results.csv'
 column_names = [
     "Algorithm", "Video Path", "FPS", "Avg Frame Processing Time", "Avg CPU Load", "MPC", "CSD", "Pearson Coefficient", "RMSE"
@@ -22,6 +26,7 @@ df = df.dropna(subset=['MPC'])
 df['CSD'] = pd.to_numeric(df['CSD'], errors='coerce')
 df = df.dropna(subset=['CSD'])
 
+# Print average stats for each algorithm
 averageFPT = df.groupby('Algorithm')['Avg Frame Processing Time'].mean()
 averageCPU = df.groupby('Algorithm')['Avg CPU Load'].mean()
 
@@ -36,15 +41,16 @@ print(averageCPU)
 print(averagePearson)
 print(averageRMSE)
 print(averageMPC)
-print(averageCSD)
 
+
+# Plot graph comparing average processing time per frame
 df['FPS'] = pd.to_numeric(df['FPS'], errors='coerce').astype(float).astype(int)
 
-fps_values = [10, 15, 30]
+fps_values = [10, 15]
 max_delays = [1 / fps for fps in fps_values]
 bar_colours = ["purple", "orange", "green"]
 
-fig, axes = plt.subplots(1, 3, figsize=(15, 8), sharey=True)
+fig, axes = plt.subplots(1, 2, figsize=(15, 8), sharey=True)
 
 plt.rcParams.update({'font.size': 18})
 
@@ -69,4 +75,29 @@ for i, (fps, max_delay) in enumerate(zip(fps_values, max_delays)):
 
 plt.tight_layout()
 plt.show()
+
+# Print statistics of the different algorithms based on different conditions
+conditions_df = pd.read_csv("video_conditions.csv")
+
+df = df.merge(conditions_df, on="Video Path", how="inner")
+
+pd.set_option('display.max_columns', None)
+
+conditions = ['Colour']
+grouped = df.groupby(['Algorithm'] + conditions)[['Pearson Coefficient', 'RMSE', 'MPC']].mean().reset_index()
+
+print(grouped)
+
+conditions = ['Position']
+grouped_position = df.groupby(['Algorithm'] + conditions)[['Pearson Coefficient', 'RMSE', 'MPC']].mean().reset_index()
+
+print(grouped_position)
+
+conditions = ['FPS']
+grouped_fps = df.groupby(['Algorithm'] + conditions)[['Pearson Coefficient', 'RMSE', 'MPC']].mean().reset_index()
+
+print(grouped_fps)
+
+
+
 

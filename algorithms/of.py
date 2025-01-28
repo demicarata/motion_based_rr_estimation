@@ -3,7 +3,8 @@ import numpy as np
 import psutil
 import time
 
-from helper.filters import bandpass_filter, exponential_moving_average, moving_average_filter, wavelet_denoising
+from helper.filters import bandpass_filter, exponential_moving_average, moving_average_filter, wavelet_denoising, \
+    gaussian_filter
 from helper.calculate_RR import fourier
 from helper.visualisation import plot_window
 from helper.window_correlation import hilbert_correlation, cross_spectral_density_correlation
@@ -25,16 +26,12 @@ def optical_flow(video, ground_truth, fps, window_size, respiratory_rate_history
         roi = frame[y:y + h, x:x + w]
         roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
 
-
-        blurred_prev_gray = cv2.GaussianBlur(prev_gray, (7, 7), 0)
-        blurred_roi_gray = cv2.GaussianBlur(roi_gray, (7, 7), 0)
-
         frame_count += 1
 
         # Calculate optical flow for the ROI
-        flow = cv2.calcOpticalFlowFarneback(blurred_prev_gray, blurred_roi_gray, None,
-                                            pyr_scale=0.25, levels=5, winsize=3,
-                                            iterations=5, poly_n=5, poly_sigma=1.1, flags=0)
+        flow = cv2.calcOpticalFlowFarneback(prev_gray, roi_gray, None,
+                                            pyr_scale=0.1, levels=5, winsize=5,
+                                            iterations=7, poly_n=5, poly_sigma=0.8, flags=0)
 
         # Calculate motion magnitude
         fx = flow[..., 0]  # Horizontal motion
@@ -53,9 +50,7 @@ def optical_flow(video, ground_truth, fps, window_size, respiratory_rate_history
 
         # Update respiratory rate every 1 second
         if frame_count >= window_size and (frame_count % int(fps) == 0):
-            filtered_signal = bandpass_filter(sliding_window_data, fps, 0.3, 0.9, 8)
-            filtered_signal = wavelet_denoising(filtered_signal)
-            filtered_signal = moving_average_filter(filtered_signal)
+            filtered_signal = bandpass_filter(sliding_window_data, fps, 0.3, 0.8, 8)
 
             respiratory_rate = fourier(filtered_signal, fps)
             respiratory_rate_history.append(respiratory_rate)
@@ -73,7 +68,7 @@ def optical_flow(video, ground_truth, fps, window_size, respiratory_rate_history
                 mpc.append(hilbert_correlation(ground_truth_window, filtered_signal))
                 csd.append(cross_spectral_density_correlation(ground_truth_window, filtered_signal))
 
-                plot_window(filtered_signal, ground_truth_window, frame_count/fps)
+                # plot_window(filtered_signal, ground_truth_window, frame_count/fps)
 
         # Display the respiratory rate on the frame
         if respiratory_rate is not None:

@@ -13,6 +13,11 @@ from algorithms.pic import pixel_intensity_changes
 from helper.ground_truth import ground_truth_rr
 from helper.visualisation import plot_performance_metrics, plot_ground_truth_rr
 
+'''
+The main function of the program
+Here you can select the video file you wish to analyse, as well as the algorithm to use
+'''
+
 
 def main():
     parser = argparse.ArgumentParser(description="Run video analysis using different algorithms.")
@@ -25,14 +30,11 @@ def main():
     choice = args.algorithm
     print(f"Using algorithm {choice}")
 
-    video_path = "AIR_converted/S05/videos/005_720p.mp4"
-    ground_truth_file = "AIR_converted/S05/hdf5/005.hdf5"
+    video_path = "AIR_converted/S05/videos/001_720p.mp4"
+    ground_truth_file = "AIR_converted/S05/hdf5/001.hdf5"
 
     with h5py.File(ground_truth_file, 'r') as f:
         ground_truth = f['respiration'][:]
-
-    if "S06" in ground_truth_file or "S08" in ground_truth_file:
-        ground_truth = 5 * ground_truth
 
     print(f"Length of the ground truth data: {len(ground_truth)}")
 

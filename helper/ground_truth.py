@@ -1,10 +1,9 @@
-import numpy as np
 import h5py
 
 from helper.calculate_RR import fourier, peak_detection
 
 '''
-Change this code
+Code to extract the RR from the ground truth
 '''
 
 
@@ -17,9 +16,7 @@ def ground_truth_rr(file_path, total_duration, fps, window_size=10, step_size=1)
     with h5py.File(file_path, "r") as hdf_file:
         respiration_signal = hdf_file['respiration'][:]
 
-        # Adjust total_duration based on the actual data size
     total_samples = len(respiration_signal)
-    total_duration = total_samples / fps  # Adjust total_duration to match data size
 
     # Validate data size
     if len(respiration_signal) != total_samples:

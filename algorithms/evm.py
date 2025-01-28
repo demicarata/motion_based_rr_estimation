@@ -55,6 +55,11 @@ def extract_motion_signal(amplified_frames):
     return np.array(signal)
 
 
+'''
+EVM algorithm
+'''
+
+
 def eulerian_video_magnification(video, ground_truth, fps, window_size,
                                  respiratory_rate_history, frame_processing_times, cpu_loads, mpc, csd, process, x, y, h, w):
     ground_truth = ground_truth * 80000000  # For visualisation purposes, as the motion magnitude is much higher
@@ -81,8 +86,7 @@ def eulerian_video_magnification(video, ground_truth, fps, window_size,
         if frame_count >= window_size and (frame_count % int(fps) == 0):
             amplified_frames = amplify_motion(sliding_window_data, fps)
             motion_signal = extract_motion_signal(amplified_frames)
-            filtered_signal = bandpass_filter(motion_signal, fps, 0.3, 0.9, 8)
-            filtered_signal = exponential_moving_average(filtered_signal)
+            filtered_signal = bandpass_filter(motion_signal, fps, 0.3, 0.8, 8)
 
             respiratory_rate = fourier(filtered_signal, fps)
             respiratory_rate_history.append(respiratory_rate)
@@ -100,7 +104,7 @@ def eulerian_video_magnification(video, ground_truth, fps, window_size,
                 mpc.append(hilbert_correlation(ground_truth_window, filtered_signal))
                 csd.append(cross_spectral_density_correlation(ground_truth_window, filtered_signal))
 
-                plot_window(filtered_signal, ground_truth_window, frame_count / fps)
+                # plot_window(filtered_signal, ground_truth_window, frame_count / fps)
 
         # Display the respiratory rate on the frame
         if respiratory_rate is not None:

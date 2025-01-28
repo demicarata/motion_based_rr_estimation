@@ -5,6 +5,10 @@ import numpy as np
 import pywt
 from scipy.ndimage import gaussian_filter1d
 
+'''
+Filters that have been tried out for the algorithms
+'''
+
 
 def bandpass_filter(signal, fs, lowcut, highcut, order=8):
     nyquist = 0.5 * fs

@@ -19,7 +19,7 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, respiratory_r
     last_valid_intensity = None
     frame_count = 0
     motion_differences = []
-    k = 5.0
+    k = 50.0
     adaptive_threshold = 100.0
 
     while True:
@@ -77,7 +77,7 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, respiratory_r
 
 
         # Calculate respiratory rate every second after the first 10 seconds
-        if frame_count >= window_size and (frame_count % int(fps) == 0):
+        if frame_count >= window_size and (frame_count % int(fps)  == 0):
 
             # Convert intensity to a NumPy array
             intensity_window = np.array(sliding_window_data)
@@ -87,13 +87,10 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, respiratory_r
             top_5 = np.argsort(std_devs)[-int(0.05 * len(std_devs)):]
             selected_signal = np.mean(intensity_window[:, top_5], axis=1)
 
-            filtered_signal = bandpass_filter(selected_signal, fps, 0.3, 0.9, 8)
+            filtered_signal = bandpass_filter(selected_signal, fps, 0.3, 0.8, 8)
 
-            # filtered_signal = wavelet_denoising(filtered_signal)
             filtered_signal = (filtered_signal - np.mean(filtered_signal)) / np.std(filtered_signal)
             filtered_signal = exponential_moving_average(filtered_signal)
-            filtered_signal = savgol(filtered_signal)
-            # filtered_signal = magnitude_threshold_filter(filtered_signal)
 
             respiratory_rate = fourier(filtered_signal, fps)
             respiratory_rate_history.append(respiratory_rate)
@@ -110,7 +107,7 @@ def pixel_intensity_changes(video, ground_truth, fps, window_size, respiratory_r
                 mpc.append(hilbert_correlation(ground_truth_window, filtered_signal))
                 csd.append(cross_spectral_density_correlation(ground_truth_window, filtered_signal))
 
-                plot_window(filtered_signal, ground_truth_window, frame_count/fps)
+                # plot_window(filtered_signal, ground_truth_window, frame_count/fps)
 
         # Display the respiratory rate on the frame
         if respiratory_rate is not None:

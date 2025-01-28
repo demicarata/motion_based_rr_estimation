@@ -1,7 +1,7 @@
 # Motion-Based Respiratory Rate Extraction Algorithms
 
 This project includes a main program that can run one of three different algorithms on a video of an infant subject to extract the respiratory rate. The extracted values are compared to a ground-truth file, after which statistics about this comparison are added to a .csv file, for further analysis.
-This work is part of the Research Project at TU Delft.
+This work is part of the 2024/2025 Q2 [Research Project](https://github.com/TU-Delft-CSE/Research-Project) at [TU Delft](https://www.tudelft.nl/).
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -41,19 +41,10 @@ The project follows a modular structure with a main file to run the program, thr
     │
     ├── statistics.py            # Compiles the results of the algorithm runs
     ├── algorithm_results.csv    # Stores the statistics extracted after each run of the algorithm
+    ├── video_conditions.csv     # Stores the conditions for each of the used videos (position, colouring, movement)
     ├── requirements.txt         # List of dependencies
-    ├── README.md                 # This file
-    │
-    └── AIR_converted/           # Dataset used for testing
-        ├── S01/                 # Data for the first subject
-        │   ├── hdf5/            # Holds ground truth data
-        │   │   ├── 001.hdf5     # Ground truth file
-        │   │   └── ...
-        │   └── videos/          # Holds the videos used for testing
-        │       ├── 001_720p.mp4 # Video file
-        │       └── ...
-        ├── S02/
-        └── ...
+    └── README.md                # This file
+     
 ```
 
 ## Usage
